@@ -74,10 +74,13 @@ def find_similarity_coefficient(movie):
     lists = count_common_elements(movie, 'lists')
     cast = count_common_elements(movie, 'cast')
     crew = count_common_elements(movie, 'crew')
-    
+
+    ru_translation = 0
+    if 'ru' in [d['iso_639_1'] for d in movie['translations']]:
+        ru_translation = 1
 
     # find resulting coefficient by summation of multiplication of found numbers and pre-defined importance coefficients
-    return keywords * 10 + genres * 10 + collection * 50 + release_date * 5 + production_companies * 5 + revenue * 3 + lists * 8 + cast * 9 + crew * 9
+    return keywords * 10 + genres * 10 + collection * 50 + release_date * 5 + production_companies * 5 + revenue * 3 + lists * 8 + cast * 9 + crew * 9 + ru_translation * 40
 
 
 
@@ -112,8 +115,9 @@ try:
 
     # print best 10 movies
     print("Фильмы, которые вам могут быть интересны: ")
+    print("------------------------------------------")
     for movie, r in ratings[1:11]:
-        print(movie['title'] + ", дата выхода - " + movie['release_date'])
+        print(movie['title'] + ", дата выхода - " + (movie['release_date'] or 'неизвестно'))
 
 except (KeyError, TypeError):
     print("База данных повреждена")

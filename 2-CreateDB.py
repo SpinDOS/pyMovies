@@ -1,6 +1,7 @@
 import random
 import urllib
 import json
+import time
 from lib import make_tmdb_api_request
 
 db = []
@@ -23,6 +24,9 @@ while len(nums) != 1000:
         # if movie with this number is not found - generate new number
         if err.code == 404:
             continue
+        if err.code == 429:
+            time.sleep(10)
+            continue;
         else:
             raise
     # if the movie is found
@@ -32,6 +36,7 @@ while len(nums) != 1000:
     lists = make_tmdb_api_request(base_string + '/lists')
     keywords = make_tmdb_api_request(base_string + '/keywords')
     movie_credits = make_tmdb_api_request(base_string + '/credits')
+    translations = make_tmdb_api_request(base_string + '/translations')
 
     # delete useless info
     del details['backdrop_path']
@@ -62,8 +67,8 @@ while len(nums) != 1000:
             for cast in movie_credits['cast']:
                 del cast['profile_path']
         if movie_credits['crew'] != None:
-            for cast in movie_credits['crew']:
-                del cast['profile_path']
+            for crew in movie_credits['crew']:
+                del crew['profile_path']
 
     #add to db
     db_entry = {}
@@ -72,6 +77,7 @@ while len(nums) != 1000:
     db_entry.update(lists)
     db_entry.update(keywords)
     db_entry.update(movie_credits)
+    db_entry.update(translations)
     db_entry['id'] = len(nums)
     db.append(db_entry)
 
