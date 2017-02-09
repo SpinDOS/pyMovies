@@ -17,7 +17,7 @@ def find_target(title):
 
     # explore the database
     for movie in db:
-        if movie['title'] == title:
+        if movie['title'].lower() == title:
             found.append(movie)
 
     # if title not found
@@ -74,6 +74,7 @@ def find_similarity_coefficient(movie):
     lists = count_common_elements(movie, 'lists')
     cast = count_common_elements(movie, 'cast')
     crew = count_common_elements(movie, 'crew')
+    
 
     # find resulting coefficient by summation of multiplication of found numbers and pre-defined importance coefficients
     return keywords * 10 + genres * 10 + collection * 50 + release_date * 5 + production_companies * 5 + revenue * 3 + lists * 8 + cast * 9 + crew * 9
@@ -97,7 +98,7 @@ if len(db) < 2:
 
 # read string for search
 print("Введите названия фильма: ", end = '')
-str = input()
+str = input().lower()
 
 
 try:
