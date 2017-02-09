@@ -34,31 +34,36 @@ while len(nums) != 1000:
     movie_credits = make_tmdb_api_request(base_string + '/credits')
 
     # delete useless info
-    details.pop('backdrop_path')
+    del details['backdrop_path']
     if details['belongs_to_collection'] != None:
-        details['belongs_to_collection'].pop('poster_path')
-        details['belongs_to_collection'].pop('backdrop_path')
-    details.pop('homepage')
-    details.pop('imdb_id')
-    details.pop('poster_path')
-    details.pop('runtime')
-    details.pop('tagline')
-    details.pop('video')
+        del details['belongs_to_collection']['poster_path']
+        del details['belongs_to_collection']['backdrop_path']
+    del details['homepage']
+    del details['imdb_id']
+    del details['poster_path']
+    del details['runtime']
+    del details['tagline']
+    del details['video']
+
+    alternative_titles['alternative_titles'] = alternative_titles.pop('titles')
 
     if lists != None:
         lists.pop('page')
         lists.pop('total_pages')
         if lists['results'] != None:
             for res in lists['results']:
-                res.pop('poster_path')
+                del res['poster_path']
+        lists['lists'] = lists.pop('results')
+        lists['total_lists'] = lists.pop('total_results')
+
 
     if movie_credits != None:
         if movie_credits['cast'] != None:
             for cast in movie_credits['cast']:
-                cast.pop('profile_path')
+                del cast['profile_path']
         if movie_credits['crew'] != None:
             for cast in movie_credits['crew']:
-                cast.pop('profile_path')
+                del cast['profile_path']
 
     #add to db
     db_entry = {}
