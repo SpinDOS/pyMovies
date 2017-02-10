@@ -3,7 +3,7 @@ import urllib.parse
 import json
 
 #get api key
-with open("apikey.json") as file_apikey:
+with open('apikey.json', 'r') as file_apikey:
     api_key = json.load(file_apikey)['key']
 
 def load_json_data_from_url(base_url, url_params):

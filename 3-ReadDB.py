@@ -1,48 +1,43 @@
 import json
 import sys
-
-def CountFilmsWord(count):
-    count %= 10
-    if count == 1:
-        return 'фильм'
-    elif count in range(2, 5):
-        return 'фильма'
-    else:
-        return 'фильмов'
+import os
 
 # read db from file
-try:
-    with open("database.plat") as file_db:
-        db = json.load(file_db)
-except FileNotFoundError:
+database_path = 'database.plat'
+if not os.path.exists(database_path):
     print("Не найдена база данных database.plat")
     sys.exit(0)
 
-if len(db) == 0:
+with open(database_path, 'r') as file_db:
+        db = json.load(file_db)
+if not db:
     print("База данных пуста")
     sys.exit(0)
 
-# read string for search
-print("Введите строку для поиска названия фильма: ", end = '')
-str = input().lower()
-
-found = []
 # search
-try:
-    for movie in db:
-        if str in movie['title'].lower():
-            found.append(movie)
-except (KeyError, TypeError):
-    print("База данных повреждена")
-    sys.exit(0)
+search_string = input("Введите строку для поиска названия фильма: ").lower()
+matching_movies = []
+for movie in db:
+    title = movie.get('title')
+    if title is None or not isinstance(title, str):
+        print("База данных повреждена")
+        sys.exit(0)
+    if search_string in title.lower():
+            matching_movies.append(movie)
+
 
 # print results
-count = len(found)
-if count == 0:
+matching_movies_count = len(matching_movies)
+if not matching_movies_count:
     print("Совпадений не найдено")
 else:
-    print("Найден{} {} {}: ".format('о' if count % 10 != 1 else '', count, CountFilmsWord(count)))
-    for movie in found:
+    count_last_digit = matching_movies_count % 10
+    print("Найден{} {} фильм{}: ".format('о' if count_last_digit != 1 else '',
+                                         matching_movies_count,
+                                         ('f' if count_last_digit == 1 else
+                                          'а' if count_last_digit in range(2, 5) else
+                                          'ов')))
+    for movie in matching_movies:
         print(movie['title'])
 
 

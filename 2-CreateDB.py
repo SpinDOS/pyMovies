@@ -2,87 +2,54 @@ import random
 import urllib
 import json
 import time
-from lib import make_tmdb_api_request
+from helpers import make_tmdb_api_request
 
 db = []
-nums = set()
 
 print("Working.. This operation may take a long time")
 # generate 1000 random numbers of films and download info about them
-while len(nums) != 1000:
-    # generate unique number of movie
-    n = random.randint(1, 100000)
-    while n in nums:
-        n = random.randint(1, 100000)
+for movie_number in random.sample(range(1, 100000) , 1000):
 
-    base_string = '/movie/' + str(n)
+    base_string = '/movie/%d' % movie_number
 
     # try get info about this movie
     try:
         details = make_tmdb_api_request(base_string)
     except urllib.error.HTTPError as err:
-        # if movie with this number is not found - generate new number
+        # if movie with this number is not found - skip this number
         if err.code == 404:
             continue
         if err.code == 429:
             time.sleep(10)
-            continue;
+            continue
         else:
             raise
-    # if the movie is found
-    nums.add(n)
-    # get another info
+
+    # get other info
     alternative_titles = make_tmdb_api_request(base_string + '/alternative_titles')
-    lists = make_tmdb_api_request(base_string + '/lists')
-    keywords = make_tmdb_api_request(base_string + '/keywords')
+    movie_lists = make_tmdb_api_request(base_string + '/lists')
+    movie_keywords = make_tmdb_api_request(base_string + '/keywords')
     movie_credits = make_tmdb_api_request(base_string + '/credits')
-    translations = make_tmdb_api_request(base_string + '/translations')
+    movie_translations = make_tmdb_api_request(base_string + '/translations')
 
-    # delete useless info
-    del details['backdrop_path']
-    if details['belongs_to_collection'] != None:
-        del details['belongs_to_collection']['poster_path']
-        del details['belongs_to_collection']['backdrop_path']
-    del details['homepage']
-    del details['imdb_id']
-    del details['poster_path']
-    del details['runtime']
-    del details['tagline']
-    del details['video']
-
+    # rename some properties to make them more informative
     alternative_titles['alternative_titles'] = alternative_titles.pop('titles')
-
-    if lists != None:
-        lists.pop('page')
-        lists.pop('total_pages')
-        if lists['results'] != None:
-            for res in lists['results']:
-                del res['poster_path']
-        lists['lists'] = lists.pop('results')
-        lists['total_lists'] = lists.pop('total_results')
-
-
-    if movie_credits != None:
-        if movie_credits['cast'] != None:
-            for cast in movie_credits['cast']:
-                del cast['profile_path']
-        if movie_credits['crew'] != None:
-            for crew in movie_credits['crew']:
-                del crew['profile_path']
+    if movie_lists:
+        del movie_lists['page']
+        del movie_lists['total_pages']
+        movie_lists['lists'] = movie_lists.pop('results')
+        movie_lists['total_lists'] = movie_lists.pop('total_results')
 
     #add to db
     db_entry = {}
-    db_entry.update(details)
-    db_entry.update(alternative_titles)
-    db_entry.update(lists)
-    db_entry.update(keywords)
-    db_entry.update(movie_credits)
-    db_entry.update(translations)
-    db_entry['id'] = len(nums)
+    for info_piece in [details, alternative_titles, movie_lists,
+                       movie_keywords, movie_credits, movie_translations]:
+        db_entry.update(info_piece)
+
     db.append(db_entry)
 
 # save db to file
 with open('database.plat', 'w') as outfile:
     json.dump(db, outfile)
 
-print("Info about 1000 movies is downloaded and saved to database.plat!")
+print("Info about %d movies is downloaded and saved to database.plat!" % len(db))
