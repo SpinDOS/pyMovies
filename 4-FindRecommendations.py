@@ -91,36 +91,38 @@ def find_similarity_coefficient(movie1, movie2):
 def find_interestingness_coefficient(movie):
     return float(movie['popularity']) * float(movie['vote_average'])
 
-# read db from file
-database_path = 'database.plat'
-if not os.path.exists(database_path):
-    print("Не найдена база данных database.plat")
-    sys.exit(0)
+if __name__ == '__main__':
 
-with open(database_path, 'r') as file_db:
-        db = json.load(file_db)
+    # read db from file
+    database_path = 'database.plat'
+    if not os.path.exists(database_path):
+        print("Не найдена база данных database.plat")
+        sys.exit(0)
 
-if len(db) < 2:
-    print("База данных пуста или содержит слишком мало элементов")
-    sys.exit(0)
+    with open(database_path, 'r') as file_db:
+            db = json.load(file_db)
 
-search_title = input("Введите названия фильма: ").lower()
-try:
-    target = find_target(db, search_title)
+    if len(db) < 2:
+        print("База данных пуста или содержит слишком мало элементов")
+        sys.exit(0)
 
-    sorted_by_recommendation = sorted([movie for movie in db if movie['id'] != target['id']],
-        key = lambda m: (find_similarity_coefficient(m, target),
-                         find_interestingness_coefficient(m)),
-        reverse = True)
+    search_title = input("Введите названия фильма: ").lower()
+    try:
+        target = find_target(db, search_title)
 
-    # print best 10 movies
-    print("Фильмы, которые вам могут быть интересны: ")
-    print("------------------------------------------")
-    for movie in sorted_by_recommendation[:10]:
-        print("{}, дата выхода - {}".format(movie['title'], movie['release_date'] or 'неизвестно'))
+        sorted_by_recommendation = sorted([movie for movie in db if movie['id'] != target['id']],
+            key = lambda m: (find_similarity_coefficient(m, target),
+                             find_interestingness_coefficient(m)),
+            reverse = True)
 
-except (KeyError, TypeError):
-    print("База данных повреждена")
-    sys.exit(0)
+        # print best 10 movies
+        print("Фильмы, которые вам могут быть интересны: ")
+        print("------------------------------------------")
+        for movie in sorted_by_recommendation[:10]:
+            print("{}, дата выхода - {}".format(movie['title'], movie['release_date'] or 'неизвестно'))
+
+    except (KeyError, TypeError):
+        print("База данных повреждена")
+        sys.exit(0)
 
 
