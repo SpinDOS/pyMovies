@@ -1,14 +1,31 @@
 import urllib.request
 import urllib.parse
 import json
+import time
+import sys
 
 #get api key
-with open('apikey.json', 'r') as file_apikey:
-    api_key = json.load(file_apikey)['key']
+api_key_path = 'apikey.json'
+try:
+    with open(api_key_path, 'r') as file_apikey:
+        api_key = json.load(file_apikey)['key']
+except (FileNotFoundError, TypeError, KeyError, json.decoder.JSONDecodeError):
+    print("Пожалуйста, поместите токен TMDB в файл %s" % api_key_path)
+    sys.exit(0)
 
 def load_json_data_from_url(base_url, url_params):
     url = '%s?%s' % (base_url, urllib.parse.urlencode(url_params))
-    response = urllib.request.urlopen(url).read().decode('utf-8')
+    try:
+        response = urllib.request.urlopen(url).read().decode('utf-8')
+    except urllib.error.HTTPError as err:
+        if err.code == 401:
+            print("Неверный токен TMDB: %s" % api_key)
+            sys.exit(0)
+        if err.code == 429:
+            time.sleep(10)
+            return load_json_data_from_url(base_url, url_params)
+        else:
+            raise
     return json.loads(response)
 
 

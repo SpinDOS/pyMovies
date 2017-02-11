@@ -19,9 +19,6 @@ for movie_number in random.sample(range(1, 100000) , 1000):
         # if movie with this number is not found - skip this number
         if err.code == 404:
             continue
-        if err.code == 429:
-            time.sleep(10)
-            continue
         else:
             raise
 
