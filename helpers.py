@@ -21,8 +21,9 @@ def load_json_data_from_url(base_url, url_params):
         if err.code == 401:
             print("Неверный токен TMDB: %s" % api_key)
             sys.exit(0)
+        # tmdb api limit - 40 requests per 10 sec causes 429 code error
         if err.code == 429:
-            time.sleep(10)
+            time.sleep(10) 
             return load_json_data_from_url(base_url, url_params)
         else:
             raise
