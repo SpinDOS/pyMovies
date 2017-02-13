@@ -1,6 +1,4 @@
-import json
 import sys
-import os
 from helpers import read_db_from_file
 
 
@@ -43,13 +41,6 @@ if __name__ == '__main__':
 
     search_string = input("Введите строку для поиска названия фильма: ").lower()
 
-    try:
-        matching_movies = find_movies_by_title_part(db, search_string)
-    except (KeyError, TypeError):
-        print("База данных повреждена")
-        sys.exit(2)
+    matching_movies = find_movies_by_title_part(db, search_string)
 
     print_found_movies(matching_movies)
-
-
-

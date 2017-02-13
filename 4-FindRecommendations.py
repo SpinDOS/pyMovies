@@ -1,6 +1,4 @@
-import json
 import sys
-import os
 from helpers import read_db_from_file
 
 
@@ -122,25 +120,19 @@ if __name__ == '__main__':
         sys.exit(1)
 
     search_title = input("Введите названия фильма: ")
-    try:
-        target = find_movie_by_title(db, search_title)
-        if not target:
-            print("Фильм не найден")
-            sys.exit(3)
 
-        all_movies_except_target = [movie for movie in db if movie['id'] != target['id']]
-        sorted_by_recommendation = sort_movies_by_similarity_to_target(target,
-                                                                       all_movies_except_target)
-
-        # print best 10 movies
-        print("Фильмы, которые вам могут быть интересны: ")
-        print("------------------------------------------")
-        for movie in sorted_by_recommendation[:10]:
-            print("{}, дата выхода - {}".format(movie['title'],
-                                                movie.get('release_date', 'неизвестно')))
-
-    except (KeyError, TypeError):
-        print("База данных повреждена")
+    target = find_movie_by_title(db, search_title)
+    if not target:
+        print("Фильм не найден")
         sys.exit(2)
 
+    all_movies_except_target = [movie for movie in db if movie['id'] != target['id']]
+    sorted_by_recommendation = sort_movies_by_similarity_to_target(target,
+                                                                   all_movies_except_target)
 
+    # print best 10 movies
+    print("Фильмы, которые вам могут быть интересны: ")
+    print("------------------------------------------")
+    for movie in sorted_by_recommendation[:10]:
+        print("{}, дата выхода - {}".format(movie['title'],
+                                            movie.get('release_date', 'неизвестно')))
