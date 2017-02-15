@@ -1,4 +1,5 @@
 import sys
+import os
 from helpers import read_db_from_file
 
 
@@ -20,15 +21,15 @@ def find_movie_by_title(movie_collection, title):
             matching_movies.append(movie)
 
     if not matching_movies:
-        return None
+        return
 
     if len(matching_movies) == 1:
         return matching_movies.pop()
 
-    return ask_user_to_select_movie_from_collection(matching_movies)
+    return ask_user_choice(matching_movies)
 
 
-def ask_user_to_select_movie_from_collection(movie_collection):
+def ask_user_choice(movie_collection):
 
     print("Найдено несколько фильмов. Выберете один: ")
     for movie_number, movie in enumerate(movie_collection):
@@ -42,16 +43,17 @@ def ask_user_to_select_movie_from_collection(movie_collection):
 
     return movie_collection[choice - 1]
 
-def find_year_difference_of_date_strings(date1, date2):
+
+def get_year_difference(date1, date2):
 
     days_in_month = 30
     days_in_year = 365
 
-    y1, m1, d1 = [int(s) for s in date1.split('-')]
-    y2, m2, d2 = [int(s) for s in date2.split('-')]
+    year1, month1, day1 = [int(s) for s in date1.split('-')]
+    year2, month2, day2 = [int(s) for s in date2.split('-')]
 
-    days1 = y1 * days_in_year + m1 * days_in_month + d1
-    days2 = y2 * days_in_year + m2 * days_in_month + d2
+    days1 = year1 * days_in_year + month1 * days_in_month + day1
+    days2 = year2 * days_in_year + month2 * days_in_month + day2
 
     return abs(days1 - days2) / days_in_year
 
@@ -61,13 +63,13 @@ def find_similarity_coefficient(movie1, movie2):
     number_of_common_keywords = count_common_elements_by_id(movie1, movie2, 'keywords')
     number_of_common_genres = count_common_elements_by_id(movie1, movie2, 'genres')
 
-    is_movies_belongs_to_the_same_collection = movie1['belongs_to_collection'] == \
+    is_in_same_collection = movie1['belongs_to_collection'] == \
                                                movie2['belongs_to_collection'] or False
 
     movie_release_date_difference = 0
     if movie1['release_date'] and movie2['release_date']:
-        movie_release_date_difference = find_year_difference_of_date_strings(movie1['release_date'],
-                                                                  movie2['release_date'])
+        movie_release_date_difference = get_year_difference(movie1['release_date'],
+                                                            movie2['release_date'])
 
     number_of_common_production_companies = count_common_elements_by_id(movie1, movie2,
                                                                         'production_companies')
@@ -83,41 +85,41 @@ def find_similarity_coefficient(movie1, movie2):
     number_of_common_casts = count_common_elements_by_id(movie1, movie2, 'cast')
     number_of_common_crews = count_common_elements_by_id(movie1, movie2, 'crew')
 
-    number_of_common__translations = 0
+    number_of_common_translations = 0
     for translation_code in [translation['iso_639_1'] for translation in movie1['translations']]:
         if translation_code in [translation['iso_639_1'] for translation in movie2['translations']]:
-            number_of_common__translations += 1
+            number_of_common_translations += 1
             
     is_both_movies_adult = movie1['adult'] == movie2['adult']
 
     # find resulting coefficient by summation of multiplication of
     # found numbers and pre-defined importance coefficients
     return (number_of_common_keywords * 10 + number_of_common_genres * 10 +
-            int(is_movies_belongs_to_the_same_collection) * 50 + int(is_both_movies_adult) * 50 +
+            int(is_in_same_collection) * 50 + int(is_both_movies_adult) * 50 +
             -movie_release_date_difference * 5 + number_of_common_production_companies * 5 +
             -revenue_difference * 3 + number_of_common_lists * 8 +
             number_of_common_casts * 9 + number_of_common_crews * 9 +
-            number_of_common__translations * 8)
+            number_of_common_translations * 8)
 
 
-def find_interestingness_coefficient(movie):
+def find_interest_coefficient(movie):
     return float(movie['popularity']) * float(movie['vote_average'])
 
 
 def sort_movies_by_similarity_to_target(target, movie_collection):
     return sorted(all_movies_except_target,
                   key=lambda movie: (find_similarity_coefficient(movie, target),
-                  find_interestingness_coefficient(movie)),
+                                     find_interest_coefficient(movie)),
                   reverse=True)
 
 
 if __name__ == '__main__':
 
-    try:
-        db = read_db_from_file()
-    except FileNotFoundError:
-        print("Не найдена база данных database.plat")
+    db_name = 'database.plat'
+    if not os.path.exists(db_name):
+        print("Не найдена база данных %s" % db_name)
         sys.exit(1)
+    db = read_db_from_file(db_name)
 
     search_title = input("Введите названия фильма: ")
 

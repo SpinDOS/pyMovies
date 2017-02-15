@@ -1,4 +1,5 @@
 import sys
+import os
 from helpers import read_db_from_file
 
 
@@ -19,7 +20,7 @@ def print_found_movies(collection_of_found_movies):
     found_movies_count = len(matching_movies)
     if not found_movies_count:
         print("Фильмы не найдены")
-        return None
+        return
 
     count_last_digit = found_movies_count % 10
     print("Найден{} {} фильм{}: ".format('о' if count_last_digit != 1 else '',
@@ -33,11 +34,11 @@ def print_found_movies(collection_of_found_movies):
 
 if __name__ == '__main__':
 
-    try:
-        db = read_db_from_file()
-    except FileNotFoundError:
-        print("Не найдена база данных database.plat")
+    db_name = 'database.plat'
+    if not os.path.exists(db_name):
+        print("Не найдена база данных %s" % db_name)
         sys.exit(1)
+    db = read_db_from_file(db_name)
 
     search_string = input("Введите строку для поиска названия фильма: ").lower()
 
