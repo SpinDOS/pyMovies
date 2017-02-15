@@ -49,8 +49,8 @@ def get_year_difference(date1, date2):
     days_in_month = 30
     days_in_year = 365
 
-    year1, month1, day1 = [int(s) for s in date1.split('-')]
-    year2, month2, day2 = [int(s) for s in date2.split('-')]
+    year1, month1, day1 = [int(date_part) for date_part in date1.split('-')]
+    year2, month2, day2 = [int(date_part) for date_part in date2.split('-')]
 
     days1 = year1 * days_in_year + month1 * days_in_month + day1
     days2 = year2 * days_in_year + month2 * days_in_month + day2
@@ -64,15 +64,15 @@ def find_similarity_coefficient(movie1, movie2):
     number_of_common_genres = count_common_elements_by_id(movie1, movie2, 'genres')
 
     is_in_same_collection = movie1['belongs_to_collection'] == \
-                                               movie2['belongs_to_collection'] or False
+                            movie2['belongs_to_collection'] or False
 
     movie_release_date_difference = 0
     if movie1['release_date'] and movie2['release_date']:
         movie_release_date_difference = get_year_difference(movie1['release_date'],
                                                             movie2['release_date'])
 
-    number_of_common_production_companies = count_common_elements_by_id(movie1, movie2,
-                                                                        'production_companies')
+    common_production_companies = count_common_elements_by_id(movie1, movie2,
+                                                              'production_companies')
 
     revenue_difference = 0
     revenue1 = int(movie1['revenue'])
@@ -92,11 +92,9 @@ def find_similarity_coefficient(movie1, movie2):
             
     is_both_movies_adult = movie1['adult'] == movie2['adult']
 
-    # find resulting coefficient by summation of multiplication of
-    # found numbers and pre-defined importance coefficients
     return (number_of_common_keywords * 10 + number_of_common_genres * 10 +
             int(is_in_same_collection) * 50 + int(is_both_movies_adult) * 50 +
-            -movie_release_date_difference * 5 + number_of_common_production_companies * 5 +
+            -movie_release_date_difference * 5 + common_production_companies * 5 +
             -revenue_difference * 3 + number_of_common_lists * 8 +
             number_of_common_casts * 9 + number_of_common_crews * 9 +
             number_of_common_translations * 8)
@@ -132,7 +130,6 @@ if __name__ == '__main__':
     sorted_by_recommendation = sort_movies_by_similarity_to_target(target,
                                                                    all_movies_except_target)
 
-    # print best 10 movies
     print("Фильмы, которые вам могут быть интересны: ")
     print("------------------------------------------")
     for movie in sorted_by_recommendation[:10]:
